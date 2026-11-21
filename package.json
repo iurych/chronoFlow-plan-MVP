@@ -1,0 +1,11 @@
+{
+  "name": "chronoflow",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev": "echo 'CF-01 ok - APIs entram na CF-04'",
+    "test": "bun test",
+    "db:migrate": "echo 'entra na CF-03'",
+    "db:seed": "echo 'entra na CF-03'"
+  }
+}
