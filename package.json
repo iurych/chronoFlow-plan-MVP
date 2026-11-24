@@ -8,8 +8,18 @@
   "scripts": {
     "dev": "echo 'CF-01 ok - APIs entram na CF-04'",
     "test": "bun test",
-    "db:migrate": "echo 'entra na CF-03'",
-    "db:seed": "echo 'entra na CF-03'",
+    "db:generate": "bun --env-file=.env x --cwd packages/db drizzle-kit generate",
+    "db:migrate": "bun --env-file=.env x --cwd packages/db drizzle-kit migrate",
+    "db:seed": "bun --env-file=.env packages/db/src/seed.ts",
     "build": "echo \"CF-01 ok - build entra com os apps\""
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.4",
+    "elysia": "^1.4.32",
+    "jose": "^6.2.18",
+    "postgres": "^4.1.1"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.31.11"
   }
 }
