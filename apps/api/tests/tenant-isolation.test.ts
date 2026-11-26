@@ -74,26 +74,47 @@ describe("CF-05 — Isolamento Multitenant por RLS (Tenant A vs Tenant B -> 404)
         .returning();
       return inserted.id;
     });
-
-    // 2. Gerar token para um usuário do Tenant B
+    
+    //2. Gerar tokens para usuários de ambos os tenants 
+    const tokenA = await signAccessToken({
+      sub: "user-a",
+      tenantId: tenantAId,
+      role: "ADMIN",
+    })
+    
     const tokenB = await signAccessToken({
       sub: "user-b",
       tenantId: tenantBId,
-      role: "CLIENT",
+      role: "ADMIN",
     });
 
     const app = new Elysia().use(servicesRoutes);
-
+    
     // 3. Tentar buscar o serviço do Tenant A autenticado como Tenant B
-    const res = await app.handle(
+    const resB = await app.handle(
       new Request(`http://localhost/services/${serviceId}`, {
         headers: {
           Authorization: `Bearer ${tokenB}`,
         },
       })
     );
+    
+    //Deve retornar 404 Not Found devido à política RLS (app.current_tenant_id != tenantAId)
+    expect(resB.status).toBe(404);
+    expect(await resB.json()).toEqual({ error: "Serviço não encontrado." });
 
-    // Deve retornar 404 Not Found devido à política RLS (app.current_tenant_id != tenantAId)
-    expect(res.status).toBe(404);
+    // 4. Confirmar que o serviço do Tenant A continua íntegro e acessível para o próprio Tenant A 
+    const resA = await app.handle(
+      new Request(`http://localhost/services/${serviceId}`, {
+        headers: {
+          Authorization: `Bearer ${tokenA}`,
+        },
+      })
+    );
+
+    
+    expect(resA.status).toBe(200);
+    const dataA = await resA.json();
+    expect(dataA.id).toBe(serviceId);
   });
 });

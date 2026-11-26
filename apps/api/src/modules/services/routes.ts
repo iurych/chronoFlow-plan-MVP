@@ -25,7 +25,7 @@ export const servicesRoutes = new Elysia({ prefix: "/services" })
     },
     {
       params: t.Object({
-        id: t.String(),
+        id: t.String({ format: "uuid" }),
       }),
     }
   )
