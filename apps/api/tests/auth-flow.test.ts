@@ -1,4 +1,5 @@
-import { beforeAll, describe, expect, it, mock } from "bun:test";
+import { afterAll, beforeAll, describe, expect, it, spyOn } from "bun:test";
+import { db } from "@chronoflow/db";
 import { Elysia } from "elysia";
 
 const fakeUser = {
@@ -9,28 +10,26 @@ const fakeUser = {
   role: "ADMIN",
 };
 
-mock.module("@chronoflow/db", () => ({
-  db: {
-    select: () => ({
-      from: () => ({
-        where: () => ({
-          limit: async () => [fakeUser],
-        }),
-      }),
+const selectSpy = spyOn(db, "select").mockImplementation((() => ({
+  from: () => ({
+    where: () => ({
+      limit: async () => [fakeUser],
     }),
-  },
-  users: {
-    email: "email",
-    tenantId: "tenantId",
-  },
-}));
+  }),
+})) as unknown as typeof db.select);
 
+const originalVerify = Bun.password.verify;
 Bun.password.verify = async (plain: string) => plain === "SenhaCorreta123";
 
 const { authRoutes } = await import("../src/modules/auth/routes");
 
 describe("CF-04 — Fluxo /auth/login, /auth/me e /auth/refresh", () => {
   const app = new Elysia().use(authRoutes);
+
+  afterAll(() => {
+    selectSpy.mockRestore();
+    Bun.password.verify = originalVerify;
+  });
 
   beforeAll(() => {
     process.env.JWT_SECRET = process.env.JWT_SECRET || "test-secret-chronoflow-2026";
