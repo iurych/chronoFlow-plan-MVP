@@ -55,4 +55,6 @@ jobs:
 
       - run: bun run build
 
+      - run: bun run db:migrate
+
       - run: bun test --pass-with-no-tests
