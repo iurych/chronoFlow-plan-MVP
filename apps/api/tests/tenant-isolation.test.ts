@@ -1,6 +1,6 @@
-import { describe, expect, it, beforeAll } from "bun:test";
+import { beforeAll, describe, expect, it } from "bun:test";
+import { db, services, tenants, withTenant } from "@chronoflow/db";
 import { Elysia } from "elysia";
-import { db, tenants, services, withTenant } from "@chronoflow/db";
 import { signAccessToken } from "../src/lib/jwt";
 import { servicesRoutes } from "../src/modules/services/routes";
 
@@ -12,10 +12,13 @@ describe("CF-05 — Isolamento Multitenant por RLS (Tenant A vs Tenant B -> 404)
     process.env.JWT_SECRET = process.env.JWT_SECRET || "test-secret-chronoflow-2026";
 
     // Criar Tenant A e Tenant B no banco
-    await db.insert(tenants).values([
-      { id: tenantAId, name: "Tenant A", slug: `tenant-a-${tenantAId.slice(0, 6)}` },
-      { id: tenantBId, name: "Tenant B", slug: `tenant-b-${tenantBId.slice(0, 6)}` },
-    ]).onConflictDoNothing();
+    await db
+      .insert(tenants)
+      .values([
+        { id: tenantAId, name: "Tenant A", slug: `tenant-a-${tenantAId.slice(0, 6)}` },
+        { id: tenantBId, name: "Tenant B", slug: `tenant-b-${tenantBId.slice(0, 6)}` },
+      ])
+      .onConflictDoNothing();
   });
 
   it("permite que o Tenant A crie e acesse seu próprio serviço", async () => {
@@ -39,7 +42,7 @@ describe("CF-05 — Isolamento Multitenant por RLS (Tenant A vs Tenant B -> 404)
           title: "Corte de Cabelo A",
           durationMinutes: 30,
         }),
-      })
+      }),
     );
 
     expect(createRes.status).toBe(201);
@@ -53,7 +56,7 @@ describe("CF-05 — Isolamento Multitenant por RLS (Tenant A vs Tenant B -> 404)
         headers: {
           Authorization: `Bearer ${tokenA}`,
         },
-      })
+      }),
     );
 
     expect(getRes.status).toBe(200);
@@ -74,14 +77,14 @@ describe("CF-05 — Isolamento Multitenant por RLS (Tenant A vs Tenant B -> 404)
         .returning();
       return inserted.id;
     });
-    
-    //2. Gerar tokens para usuários de ambos os tenants 
+
+    //2. Gerar tokens para usuários de ambos os tenants
     const tokenA = await signAccessToken({
       sub: "user-a",
       tenantId: tenantAId,
       role: "ADMIN",
-    })
-    
+    });
+
     const tokenB = await signAccessToken({
       sub: "user-b",
       tenantId: tenantBId,
@@ -89,30 +92,29 @@ describe("CF-05 — Isolamento Multitenant por RLS (Tenant A vs Tenant B -> 404)
     });
 
     const app = new Elysia().use(servicesRoutes);
-    
+
     // 3. Tentar buscar o serviço do Tenant A autenticado como Tenant B
     const resB = await app.handle(
       new Request(`http://localhost/services/${serviceId}`, {
         headers: {
           Authorization: `Bearer ${tokenB}`,
         },
-      })
+      }),
     );
-    
+
     //Deve retornar 404 Not Found devido à política RLS (app.current_tenant_id != tenantAId)
     expect(resB.status).toBe(404);
     expect(await resB.json()).toEqual({ error: "Serviço não encontrado." });
 
-    // 4. Confirmar que o serviço do Tenant A continua íntegro e acessível para o próprio Tenant A 
+    // 4. Confirmar que o serviço do Tenant A continua íntegro e acessível para o próprio Tenant A
     const resA = await app.handle(
       new Request(`http://localhost/services/${serviceId}`, {
         headers: {
           Authorization: `Bearer ${tokenA}`,
         },
-      })
+      }),
     );
 
-    
     expect(resA.status).toBe(200);
     const dataA = await resA.json();
     expect(dataA.id).toBe(serviceId);

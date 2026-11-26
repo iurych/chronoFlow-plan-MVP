@@ -19,11 +19,7 @@ async function seed() {
     })
     .onConflictDoNothing({ target: tenants.slug });
 
-  const [tenant] = await db
-    .select()
-    .from(tenants)
-    .where(eq(tenants.slug, defaultSlug))
-    .limit(1);
+  const [tenant] = await db.select().from(tenants).where(eq(tenants.slug, defaultSlug)).limit(1);
 
   if (!tenant) {
     throw new Error(`Falha ao obter ou criar o tenant '${defaultSlug}'.`);

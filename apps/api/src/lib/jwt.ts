@@ -1,4 +1,4 @@
-import { SignJWT, jwtVerify } from "jose";
+import { jwtVerify, SignJWT } from "jose";
 
 export type UserRole = "ADMIN" | "PROFESSIONAL" | "CLIENT";
 
@@ -39,7 +39,7 @@ export async function signAccessToken(payload: Omit<AccessTokenPayload, "type">)
 }
 
 export async function signRefreshToken(
-  payload: Omit<RefreshTokenPayload, "type">
+  payload: Omit<RefreshTokenPayload, "type">,
 ): Promise<string> {
   return await new SignJWT({ ...payload, type: "refresh" })
     .setProtectedHeader({ alg: "HS256" })

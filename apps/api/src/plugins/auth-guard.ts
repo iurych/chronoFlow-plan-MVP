@@ -5,7 +5,7 @@ export const authGuard = new Elysia({ name: "auth-guard" }).derive(
   { as: "scoped" },
   async ({ headers, set }) => {
     const authHeader = headers.authorization;
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!authHeader?.startsWith("Bearer ")) {
       set.status = 401;
       throw new Error("Token de autenticação ausente ou mal formatado.");
     }
@@ -23,5 +23,5 @@ export const authGuard = new Elysia({ name: "auth-guard" }).derive(
       set.status = 401;
       throw new Error("Token de acesso inválido ou expirado.");
     }
-  }
+  },
 );

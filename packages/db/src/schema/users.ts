@@ -1,12 +1,4 @@
-import {
-  index,
-  pgEnum,
-  pgTable,
-  timestamp,
-  uniqueIndex,
-  uuid,
-  varchar,
-} from "drizzle-orm/pg-core";
+import { index, pgEnum, pgTable, timestamp, uniqueIndex, uuid, varchar } from "drizzle-orm/pg-core";
 import { tenants } from "./tenants";
 
 export const USER_ROLES = ["ADMIN", "PROFESSIONAL", "CLIENT"] as const;
@@ -22,7 +14,7 @@ export const users = pgTable(
       .notNull()
       .references(() => tenants.id, { onDelete: "cascade" }),
     email: varchar("email", { length: 255 }).notNull(),
-     passwordHash: varchar("password_hash", { length: 255 }).notNull(),
+    passwordHash: varchar("password_hash", { length: 255 }).notNull(),
     role: userRoleEnum("role").notNull().default("CLIENT"),
     timezone: varchar("timezone", { length: 100 }).notNull().default("America/Sao_Paulo"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),

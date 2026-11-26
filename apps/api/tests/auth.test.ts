@@ -1,6 +1,11 @@
 import { beforeAll, describe, expect, it } from "bun:test";
 import { Elysia } from "elysia";
-import { signAccessToken, signRefreshToken, verifyAccessToken, verifyRefreshToken } from "../src/lib/jwt";
+import {
+  signAccessToken,
+  signRefreshToken,
+  verifyAccessToken,
+  verifyRefreshToken,
+} from "../src/lib/jwt";
 import { authGuard } from "../src/plugins/auth-guard";
 
 describe("CF-04 — Auth JWT e AuthGuard", () => {
@@ -60,20 +65,18 @@ describe("CF-04 — Auth JWT e AuthGuard", () => {
       role: "PROFESSIONAL",
     });
 
-    const app = new Elysia()
-      .use(authGuard)
-      .get("/protected", ({ userId, tenantId, role }) => ({
-        userId,
-        tenantId,
-        role,
-      }));
+    const app = new Elysia().use(authGuard).get("/protected", ({ userId, tenantId, role }) => ({
+      userId,
+      tenantId,
+      role,
+    }));
 
     const res = await app.handle(
       new Request("http://localhost/protected", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-      })
+      }),
     );
 
     expect(res.status).toBe(200);

@@ -1,11 +1,4 @@
-import {
-  boolean,
-  index,
-  integer,
-  pgTable,
-  uuid,
-  varchar,
-} from "drizzle-orm/pg-core";
+import { boolean, index, integer, pgTable, uuid, varchar } from "drizzle-orm/pg-core";
 import { tenants } from "./tenants";
 
 export const services = pgTable(

@@ -1,21 +1,21 @@
 export { client, db } from "./client";
 export {
-  services,
-  type Service,
   type NewService,
+  type Service,
+  services,
 } from "./schema/services";
 export {
-  tenants,
-  type Tenant,
   type NewTenant,
+  type Tenant,
   type TenantSettings,
+  tenants,
 } from "./schema/tenants";
 export {
-  users,
-  userRoleEnum,
+  type NewUser,
   USER_ROLES,
   type User,
-  type NewUser,
   type UserRole,
+  userRoleEnum,
+  users,
 } from "./schema/users";
-export { withTenant, type TenantTx } from "./tenant-context";
+export { type TenantTx, withTenant } from "./tenant-context";

@@ -3,9 +3,9 @@ import { and, eq } from "drizzle-orm";
 import { Elysia, t } from "elysia";
 import {
   REFRESH_TOKEN_TTL_SECONDS,
-  type UserRole,
   signAccessToken,
   signRefreshToken,
+  type UserRole,
   verifyRefreshToken,
 } from "../../lib/jwt";
 import { authGuard } from "../../plugins/auth-guard";
@@ -94,7 +94,7 @@ export const authRoutes = new Elysia({ prefix: "/auth" })
         password: t.String({ minLength: 1 }),
         tenantId: t.Optional(t.String()),
       }),
-    }
+    },
   )
   .post(
     "/refresh",
@@ -137,7 +137,7 @@ export const authRoutes = new Elysia({ prefix: "/auth" })
       body: t.Object({
         refreshToken: t.String({ minLength: 10 }),
       }),
-    }
+    },
   )
   .use(authGuard)
   .get("/me", ({ userId, tenantId, role }) => {

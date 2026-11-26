@@ -1,4 +1,4 @@
-import { db, services, withTenant } from "@chronoflow/db";
+import { services, withTenant } from "@chronoflow/db";
 import { eq } from "drizzle-orm";
 import { Elysia, t } from "elysia";
 import { authGuard } from "../../plugins/auth-guard";
@@ -27,7 +27,7 @@ export const servicesRoutes = new Elysia({ prefix: "/services" })
       params: t.Object({
         id: t.String({ format: "uuid" }),
       }),
-    }
+    },
   )
   .post(
     "/",
@@ -53,5 +53,5 @@ export const servicesRoutes = new Elysia({ prefix: "/services" })
         durationMinutes: t.Number({ minimum: 1 }),
         priceCents: t.Optional(t.Number({ minimum: 0 })),
       }),
-    }
+    },
   );

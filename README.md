@@ -6,7 +6,7 @@
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Redis](https://img.shields.io/badge/Redis-7-DC382D?logo=redis&logoColor=white)](https://redis.io/)
 
-> **Plataforma SaaS B2B/B2C de agendamentos de alta disponibilidade**, projetada com foco em isolamento de dados (*Multi-tenancy*), prevenção rigorosa de condições de corrida (*Race Conditions*), manipulação determinística de fusos horários e processamento assíncrono em alta velocidade sobre o runtime **Bun**.
+> **Plataforma SaaS B2B/B2C de agendamentos de alta disponibilidade**, projetada com foco em isolamento de dados (_Multi-tenancy_), prevenção rigorosa de condições de corrida (_Race Conditions_), manipulação determinística de fusos horários e processamento assíncrono em alta velocidade sobre o runtime **Bun**.
 
 ---
 
@@ -27,8 +27,9 @@
 ## 🎯 1. Visão Geral e Problema Resolvido
 
 Sistemas de agendamento em produção enfrentam desafios críticos que vão muito além de operações CRUD tradicionais:
+
 1. **Double Booking (Concorrência):** Dois clientes tentando reservar o último horário disponível no mesmo milissegundo.
-2. **Armadilhas de Fuso Horário & Horário de Verão:** Profissionais e clientes operando em regiões diferentes com regras dinâmicas de DST (*Daylight Saving Time*).
+2. **Armadilhas de Fuso Horário & Horário de Verão:** Profissionais e clientes operando em regiões diferentes com regras dinâmicas de DST (_Daylight Saving Time_).
 3. **Vazamento de Dados entre Tenants:** Risco de uma clínica/empresa visualizar ou alterar agendas de outra organização.
 4. **Resiliência em Notificações e Pagamentos:** Falhas de rede em provedores de e-mail, WhatsApp ou gateways de pagamento (webhooks duplicados).
 
@@ -36,7 +37,7 @@ Sistemas de agendamento em produção enfrentam desafios críticos que vão muit
 
 ## 🏗️ 2. Arquitetura do Sistema
 
-A aplicação é organizada como um **Monorepo nativo via Bun Workspaces**, compartilhando contratos de tipagem *End-to-End* (via **Eden Treaty**) entre o frontend Next.js, a API ElysiaJS e os Workers assíncronos.
+A aplicação é organizada como um **Monorepo nativo via Bun Workspaces**, compartilhando contratos de tipagem _End-to-End_ (via **Eden Treaty**) entre o frontend Next.js, a API ElysiaJS e os Workers assíncronos.
 
 ```mermaid
 flowchart TB
@@ -202,36 +203,39 @@ erDiagram
 
 ## 🛠️ 5. Stack Tecnológica
 
-| Camada | Tecnologia | Papel na Arquitetura |
-| :--- | :--- | :--- |
-| **Runtime & Package Manager** | **Bun 1.x** | Execução nativa de TypeScript sem transpilação prévia, `bun install` ultrarrápido e test runner nativo (`bun test`). |
-| **Backend Framework** | **ElysiaJS** | Framework web ergonômico otimizado para Bun, com validação de schema em tempo de execução (TypeBox) e documentação OpenAPI/Swagger automática. |
-| **End-to-End Type Safety** | **Eden Treaty** | Cliente RPC type-safe que permite ao frontend consumir rotas do ElysiaJS com autocomplete total sem geração de código. |
-| **Banco de Dados & ORM** | **PostgreSQL 16 + Drizzle ORM** | Consultas SQL performáticas e type-safe, suporte nativo a `TSTZRANGE` e `EXCLUDE USING GIST` para integridade temporal. |
-| **Filas & Cache** | **Redis 7 + BullMQ** | Processamento assíncrono com *retries* exponenciais, *Dead Letter Queues* (DLQ) e bloqueio distribuído. |
-| **Autenticação** | **JWT (Jose) + Bun.password** | Hashing nativo de senhas via Argon2id (`Bun.password.hash`) e tokens de curta duração com Refresh Token rotativo. |
-| **Frontend** | **Next.js 15 (App Router) + Tailwind CSS** | Interface responsiva com *Optimistic UI* e renderização híbrida. |
-| **Observabilidade** | **Pino + OpenTelemetry** | Logs estruturados em JSON com `correlationId` por requisição e rastreamento distribuído. |
+| Camada                        | Tecnologia                                 | Papel na Arquitetura                                                                                                                           |
+| :---------------------------- | :----------------------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Runtime & Package Manager** | **Bun 1.x**                                | Execução nativa de TypeScript sem transpilação prévia, `bun install` ultrarrápido e test runner nativo (`bun test`).                           |
+| **Backend Framework**         | **ElysiaJS**                               | Framework web ergonômico otimizado para Bun, com validação de schema em tempo de execução (TypeBox) e documentação OpenAPI/Swagger automática. |
+| **End-to-End Type Safety**    | **Eden Treaty**                            | Cliente RPC type-safe que permite ao frontend consumir rotas do ElysiaJS com autocomplete total sem geração de código.                         |
+| **Banco de Dados & ORM**      | **PostgreSQL 16 + Drizzle ORM**            | Consultas SQL performáticas e type-safe, suporte nativo a `TSTZRANGE` e `EXCLUDE USING GIST` para integridade temporal.                        |
+| **Filas & Cache**             | **Redis 7 + BullMQ**                       | Processamento assíncrono com _retries_ exponenciais, _Dead Letter Queues_ (DLQ) e bloqueio distribuído.                                        |
+| **Autenticação**              | **JWT (Jose) + Bun.password**              | Hashing nativo de senhas via Argon2id (`Bun.password.hash`) e tokens de curta duração com Refresh Token rotativo.                              |
+| **Frontend**                  | **Next.js 15 (App Router) + Tailwind CSS** | Interface responsiva com _Optimistic UI_ e renderização híbrida.                                                                               |
+| **Observabilidade**           | **Pino + OpenTelemetry**                   | Logs estruturados em JSON com `correlationId` por requisição e rastreamento distribuído.                                                       |
 
 ---
 
 ## 🧠 6. Architecture Decision Records (ADRs)
 
 ### ADR-001: Por que Bun + ElysiaJS em vez de Node.js + Express/NestJS?
-* **Contexto:** Precisamos de baixa latência na validação de disponibilidade de slots (cálculo intensivo de intervalos de datas) e segurança estrita de tipos entre backend e frontend.
-* **Decisão:** Adotar **Bun** como runtime e **ElysiaJS** como framework HTTP.
-* **Consequências:** Redução significativa no tempo de cold-start e overhead de serialização JSON; uso de APIs nativas rápidas (`Bun.password`, `Bun.sql` / driver `postgres.js`) e inferência de tipos automática via Eden Treaty.
+
+- **Contexto:** Precisamos de baixa latência na validação de disponibilidade de slots (cálculo intensivo de intervalos de datas) e segurança estrita de tipos entre backend e frontend.
+- **Decisão:** Adotar **Bun** como runtime e **ElysiaJS** como framework HTTP.
+- **Consequências:** Redução significativa no tempo de cold-start e overhead de serialização JSON; uso de APIs nativas rápidas (`Bun.password`, `Bun.sql` / driver `postgres.js`) e inferência de tipos automática via Eden Treaty.
 
 ### ADR-002: Defesa em Profundidade contra Double-Booking
-* **Contexto:** Apenas validar `if (slotIsFree)` na aplicação falha sob alta concorrência.
-* **Decisão:** Aplicar três camadas de proteção:
+
+- **Contexto:** Apenas validar `if (slotIsFree)` na aplicação falha sob alta concorrência.
+- **Decisão:** Aplicar três camadas de proteção:
   1. **Redis Distributed Lock:** Rejeita imediatamente requisições concorrentes para o mesmo profissional/horário antes de tocar no banco.
   2. **Pessimistic Locking (`FOR UPDATE`):** Serializa transações concorrentes no PostgreSQL.
   3. **Constraint `EXCLUDE USING GIST`:** Garante no nível do motor do banco de dados que dois agendamentos ativos (`status != 'CANCELLED'`) nunca possuam interseção de intervalo (`tstzrange(start_utc, end_utc)`) para o mesmo `professional_id`.
 
 ### ADR-003: Isolamento Multi-tenant via Contexto de Requisição + RLS
-* **Contexto:** Dados de múltiplos clientes coexistem no mesmo banco PostgreSQL.
-* **Decisão:** Toda requisição autenticada injeta `tenantId` via plugin de escopo do ElysiaJS e configura `SET LOCAL app.current_tenant_id = '...'` na transação do PostgreSQL, ativando políticas de **Row-Level Security (RLS)** como rede de segurança contra esquecimento de cláusulas `WHERE tenant_id = ?`.
+
+- **Contexto:** Dados de múltiplos clientes coexistem no mesmo banco PostgreSQL.
+- **Decisão:** Toda requisição autenticada injeta `tenantId` via plugin de escopo do ElysiaJS e configura `SET LOCAL app.current_tenant_id = '...'` na transação do PostgreSQL, ativando políticas de **Row-Level Security (RLS)** como rede de segurança contra esquecimento de cláusulas `WHERE tenant_id = ?`.
 
 ---
 
@@ -265,8 +269,9 @@ chronoflow/
 ## 🚀 8. Setup Local e Execução
 
 ### Pré-requisitos
-* [Bun](https://bun.sh/) `>= 1.1.0`
-* [Docker](https://www.docker.com/) e Docker Compose
+
+- [Bun](https://bun.sh/) `>= 1.1.0`
+- [Docker](https://www.docker.com/) e Docker Compose
 
 ### Passo a Passo
 
@@ -292,9 +297,9 @@ bun run db:seed
 bun run dev
 ```
 
-* **API Swagger / Scalar Docs:** `http://localhost:3000/swagger`
-* **Frontend Web:** `http://localhost:3001`
-* **Mailpit (Caixa de entrada local):** `http://localhost:8025`
+- **API Swagger / Scalar Docs:** `http://localhost:3000/swagger`
+- **Frontend Web:** `http://localhost:3001`
+- **Mailpit (Caixa de entrada local):** `http://localhost:8025`
 
 ---
 
@@ -311,6 +316,7 @@ bun test:integration
 ```
 
 ### Cenários Obrigatórios Cobertos na Suite:
+
 - [x] **Teste de Concorrência (Race Condition):** Disparo paralelo (`Promise.allSettled`) de **50 requisições simultâneas** para o mesmo horário e profissional — garantindo exatamente `1` status `201 Created` e `49` status `409 Conflict`.
 - [x] **Teste de Transição de Horário de Verão (DST):** Criação de agendamentos recorrentes na semana de mudança de fuso em `America/New_York` e `Europe/London`.
 - [x] **Teste de Vazamento Multi-tenant:** Tentativa de leitura/cancelamento de agendamento do `Tenant A` utilizando token JWT válido do `Tenant B` (deve retornar `404 Not Found`).

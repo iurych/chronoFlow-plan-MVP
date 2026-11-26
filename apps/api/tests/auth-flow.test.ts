@@ -44,7 +44,7 @@ describe("CF-04 — Fluxo /auth/login, /auth/me e /auth/refresh", () => {
           email: fakeUser.email,
           password: "SenhaErrada",
         }),
-      })
+      }),
     );
 
     expect(res.status).toBe(401);
@@ -59,7 +59,7 @@ describe("CF-04 — Fluxo /auth/login, /auth/me e /auth/refresh", () => {
           email: fakeUser.email,
           password: "SenhaCorreta123",
         }),
-      })
+      }),
     );
 
     expect(loginRes.status).toBe(200);
@@ -70,7 +70,7 @@ describe("CF-04 — Fluxo /auth/login, /auth/me e /auth/refresh", () => {
     const meRes = await app.handle(
       new Request("http://localhost/auth/me", {
         headers: { Authorization: `Bearer ${accessToken}` },
-      })
+      }),
     );
     expect(meRes.status).toBe(200);
     expect(await meRes.json()).toEqual({
@@ -84,7 +84,7 @@ describe("CF-04 — Fluxo /auth/login, /auth/me e /auth/refresh", () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ refreshToken }),
-      })
+      }),
     );
     expect(refreshRes.status).toBe(200);
     const rotated = await refreshRes.json();
@@ -99,7 +99,7 @@ describe("CF-04 — Fluxo /auth/login, /auth/me e /auth/refresh", () => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ refreshToken }),
-        })
+        }),
       );
       expect(reuseRes.status).toBe(401);
     }
