@@ -13,23 +13,23 @@ import { authGuard } from "../../plugins/auth-guard";
 // Cliente Redis nativo do Bun (requer REDIS_URL no ambiente)
 const redisClient = process.env.REDIS_URL ? new Bun.RedisClient(process.env.REDIS_URL) : null;
 
-function refreshKey(jti: string): string {
+const refreshKey = (jti: string): string => {
   return `chronoflow:refresh:${jti}`;
-}
+};
 
-async function storeRefreshJti(jti: string, userId: string): Promise<void> {
+const storeRefreshJti = async (jti: string, userId: string): Promise<void> => {
   if (!redisClient) return;
   await redisClient.set(refreshKey(jti), userId);
   await redisClient.expire(refreshKey(jti), REFRESH_TOKEN_TTL_SECONDS);
-}
+};
 
-async function consumeRefreshJti(jti: string): Promise<string | null> {
+const consumeRefreshJti = async (jti: string): Promise<string | null> => {
   if (!redisClient) return "stateless-ok";
   const ownerId = await redisClient.get(refreshKey(jti));
   if (!ownerId) return null;
   await redisClient.del(refreshKey(jti));
   return ownerId;
-}
+};
 
 export const authRoutes = new Elysia({ prefix: "/auth" })
   .post(

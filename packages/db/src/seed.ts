@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { client, db, services, tenants, users } from "./index";
 
-async function seed() {
+const seed = async () => {
   const defaultSlug = "chronoflow-demo";
   const defaultPassword = process.env.SEED_DEFAULT_PASSWORD ?? "ChronoFlow@123";
 
@@ -93,7 +93,7 @@ async function seed() {
   }
 
   console.log("Seed concluído com sucesso para o tenant:", tenant.slug);
-}
+};
 
 seed()
   .catch((error) => {

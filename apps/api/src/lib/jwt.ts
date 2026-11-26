@@ -21,26 +21,28 @@ const ACCESS_TOKEN_TTL = "15m";
 const REFRESH_TOKEN_TTL = "7d";
 export const REFRESH_TOKEN_TTL_SECONDS = 7 * 24 * 60 * 60;
 
-function getSecretKey(): Uint8Array {
+const getSecretKey = (): Uint8Array => {
   const secret = process.env.JWT_SECRET;
   if (!secret || secret.trim().length === 0) {
     throw new Error("JWT_SECRET não está configurada no ambiente.");
   }
   return new TextEncoder().encode(secret);
-}
+};
 
-export async function signAccessToken(payload: Omit<AccessTokenPayload, "type">): Promise<string> {
+export const signAccessToken = async (
+  payload: Omit<AccessTokenPayload, "type">,
+): Promise<string> => {
   return await new SignJWT({ ...payload, type: "access" })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(payload.sub)
     .setIssuedAt()
     .setExpirationTime(ACCESS_TOKEN_TTL)
     .sign(getSecretKey());
-}
+};
 
-export async function signRefreshToken(
+export const signRefreshToken = async (
   payload: Omit<RefreshTokenPayload, "type">,
-): Promise<string> {
+): Promise<string> => {
   return await new SignJWT({ ...payload, type: "refresh" })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(payload.sub)
@@ -48,9 +50,9 @@ export async function signRefreshToken(
     .setIssuedAt()
     .setExpirationTime(REFRESH_TOKEN_TTL)
     .sign(getSecretKey());
-}
+};
 
-export async function verifyAccessToken(token: string): Promise<AccessTokenPayload> {
+export const verifyAccessToken = async (token: string): Promise<AccessTokenPayload> => {
   const { payload } = await jwtVerify(token, getSecretKey());
   if (
     payload.type !== "access" ||
@@ -67,9 +69,9 @@ export async function verifyAccessToken(token: string): Promise<AccessTokenPaylo
     role: payload.role as UserRole,
     type: "access",
   };
-}
+};
 
-export async function verifyRefreshToken(token: string): Promise<RefreshTokenPayload> {
+export const verifyRefreshToken = async (token: string): Promise<RefreshTokenPayload> => {
   const { payload } = await jwtVerify(token, getSecretKey());
   if (
     payload.type !== "refresh" ||
@@ -88,4 +90,4 @@ export async function verifyRefreshToken(token: string): Promise<RefreshTokenPay
     jti: payload.jti,
     type: "refresh",
   };
-}
+};
